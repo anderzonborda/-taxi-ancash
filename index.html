@@ -97,15 +97,20 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 <section id="sAuth" class="card hidden">
 <h2>Portal de clientes</h2>
 <p class="muted" style="margin-top:0">Entra o crea tu cuenta para reservar.</p>
-<div class="tabs"><button id="tLogin" aria-pressed="true" data-act="mode" data-m="login">Iniciar sesión</button><button id="tReg" aria-pressed="false" data-act="mode" data-m="register">Registrarse</button></div>
+<div id="credF"><div class="tabs"><button id="tLogin" aria-pressed="true" data-act="mode" data-m="login">Iniciar sesión</button><button id="tReg" aria-pressed="false" data-act="mode" data-m="register">Registrarse</button></div>
 <div class="field hidden" id="nameF"><label for="aName">Nombre y apellido</label><input id="aName" autocomplete="name" maxlength="80"></div>
 <div class="field"><label for="aPhone">Celular (9 dígitos)</label><input id="aPhone" inputmode="numeric" autocomplete="username" maxlength="9" placeholder="987654321"></div>
 <div class="field"><label for="aPass">Contraseña (mínimo 8 caracteres)</label><input id="aPass" type="password" autocomplete="current-password"></div>
 <button id="authBtn" data-act="auth">Entrar a mi cuenta</button>
+</div>
+<div id="otpF" class="hidden"><p class="muted" id="otpMsg" style="margin-top:0"></p>
+<div class="field"><label for="aOtp">Código de 6 dígitos</label><input id="aOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
+<button data-act="otp">Verificar código</button>
+<div class="acts"><button class="alt sm" id="resendBtn" data-act="resend">Reenviar código</button><button class="alt sm" data-act="otpback">Cambiar número</button></div></div>
 </section>
 
 <section id="sMain" class="hidden">
-<div class="card between"><div><div class="muted">Bienvenido</div><b id="welcome"></b></div><button class="alt sm" data-act="logout">Cerrar sesión</button></div>
+<div class="card between"><div><div class="muted">Bienvenido</div><b id="welcome"></b></div><div class="acts" style="margin:0"><a id="adminLink" class="btn sm hidden" href="#admin">Panel admin</a><button class="alt sm" data-act="logout">Cerrar sesión</button></div></div>
 
 <div id="flow">
 <div class="card"><h2><span>1</span>Datos del viaje</h2>
@@ -142,7 +147,7 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 <div class="kpis" style="margin-top:14px" id="kpis"></div>
 <h3>Vehículos y ocupación</h3><div id="adminVeh"></div>
 <h3>Reservas y capturas de pago</h3><div id="adminBook"></div>
-<div class="acts" style="margin-top:20px"><button class="alt" data-act="logout">Cerrar sesión</button></div>
+<div class="acts" style="margin-top:20px"><a class="btn alt" href="#">Volver a reservas</a><button class="alt" data-act="logout">Cerrar sesión</button></div>
 </div></section>
 
 </div></main>
@@ -160,7 +165,8 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'S/ '+Number(n).toFixed(2);
 const HOURS={'6:00 p. m.':18,'7:00 p. m.':19,'8:00 p. m.':20,'9:00 p. m.':21};
-const emailOf=p=>p+'@clientes.taxiancash.pe';
+const phoneOf=p=>'+51'+p;
+let pending=null,cool=null;
 let me=null,vehicles=[],selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
 
 function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3800)}
@@ -183,7 +189,7 @@ async function route(){
   $('denied').classList.toggle('hidden',me.is_admin);$('adminBody').classList.toggle('hidden',!me.is_admin);
   if(me.is_admin)await renderAdmin();
  }else if(view==='main'){
-  $('welcome').textContent=me.name+' ('+me.phone+')';
+  $('welcome').textContent=me.name+' ('+me.phone+')';$('adminLink').classList.toggle('hidden',!me.is_admin);
   $('flow').classList.remove('hidden');$('done').classList.add('hidden');
   await loadVehicles();await loadTaken();renderAll();renderMine();
  }
@@ -191,22 +197,47 @@ async function route(){
 window.addEventListener('hashchange',route);
 (async()=>{const{data:{session}}=await sb.auth.getSession();setSession(session)})();
 
+function startCool(){
+ let n=60;const b=$('resendBtn');b.disabled=true;b.textContent='Reenviar en 60 s';clearInterval(cool);
+ cool=setInterval(()=>{n--;b.textContent=n>0?'Reenviar en '+n+' s':'Reenviar código';if(n<=0){clearInterval(cool);b.disabled=false}},1000);
+}
+function showOtp(phone,msg){
+ pending=phone;$('credF').classList.add('hidden');$('otpF').classList.remove('hidden');
+ $('otpMsg').textContent=msg||('Enviamos un código por SMS al +51 '+phone.slice(3)+'.');
+ $('aOtp').value='';$('aOtp').focus();startCool();
+}
 async function doAuth(){
  if(busy)return;
- const phone=$('aPhone').value.trim(),pass=$('aPass').value,name=$('aName').value.trim();
- if(!/^\d{9}$/.test(phone))return notify('El celular debe tener 9 dígitos.');
+ const num=$('aPhone').value.trim(),pass=$('aPass').value,name=$('aName').value.trim(),phone=phoneOf(num);
+ if(!/^9\d{8}$/.test(num))return notify('Escribe un celular de Perú de 9 dígitos (empieza con 9).');
  if(pass.length<8)return notify('La contraseña debe tener al menos 8 caracteres.');
  if(mode==='register'&&!name)return notify('Escribe tu nombre y apellido.');
  busy=true;$('authBtn').disabled=true;
- const r=mode==='register'?await sb.auth.signUp({email:emailOf(phone),password:pass,options:{data:{name}}}):await sb.auth.signInWithPassword({email:emailOf(phone),password:pass});
+ const r=mode==='register'?await sb.auth.signUp({phone,password:pass,options:{data:{name}}}):await sb.auth.signInWithPassword({phone,password:pass});
  busy=false;$('authBtn').disabled=false;
  if(r.error){
-  const m=/registered|already/i.test(r.error.message)?'Este número ya está registrado. Inicia sesión.':mode==='login'?'Número o contraseña incorrectos.':'No se pudo crear la cuenta. Revisa tus datos.';
-  return notify(m);
+  const e=r.error.message||'';
+  if(mode==='login'&&/confirm/i.test(e)){await sb.auth.resend({type:'sms',phone});return showOtp(phone,'Primero verifica tu celular. Te enviamos un código nuevo.')}
+  if(/registered|already/i.test(e))return notify('Este número ya está registrado. Inicia sesión.');
+  if(/rate|seconds|too many/i.test(e))return notify('Espera un momento antes de pedir otro código.');
+  return notify(mode==='login'?'Número o contraseña incorrectos.':'No se pudo enviar el código. Revisa tu número.');
  }
- if(!r.data.session)return notify('Cuenta creada. Inicia sesión.');
- $('aPass').value='';notify(mode==='register'?'Cuenta creada con éxito.':'Bienvenido.');
- setSession(r.data.session);
+ if(r.data.session){$('aPass').value='';notify('Bienvenido.');return setSession(r.data.session)}
+ showOtp(phone);
+}
+async function verifyCode(){
+ const token=$('aOtp').value.trim();
+ if(!/^\d{6}$/.test(token))return notify('Escribe los 6 dígitos del código.');
+ if(busy)return;busy=true;
+ const{data,error}=await sb.auth.verifyOtp({phone:pending,token,type:'sms'});
+ busy=false;
+ if(error)return notify('Código incorrecto o vencido.');
+ clearInterval(cool);$('aPass').value='';$('otpF').classList.add('hidden');$('credF').classList.remove('hidden');
+ notify('Celular verificado. Bienvenido.');setSession(data.session);
+}
+async function resendCode(){
+ const{error}=await sb.auth.resend({type:'sms',phone:pending});
+ notify(error?'Espera un momento antes de pedir otro código.':'Código reenviado.');if(!error)startCool();
 }
 
 /* ---------- reserva ---------- */
@@ -317,6 +348,9 @@ document.addEventListener('click',async e=>{
  const el=e.target.closest('[data-act]');if(!el||el.tagName==='SELECT')return;const a=el.dataset.act;
  if(a==='mode'){mode=el.dataset.m;$('tLogin').setAttribute('aria-pressed',mode==='login');$('tReg').setAttribute('aria-pressed',mode==='register');$('nameF').classList.toggle('hidden',mode==='login');$('authBtn').textContent=mode==='login'?'Entrar a mi cuenta':'Crear mi cuenta';$('aPass').autocomplete=mode==='login'?'current-password':'new-password'}
  else if(a==='auth')doAuth();
+ else if(a==='otp')verifyCode();
+ else if(a==='resend')resendCode();
+ else if(a==='otpback'){clearInterval(cool);$('otpF').classList.add('hidden');$('credF').classList.remove('hidden')}
  else if(a==='logout'){await sb.auth.signOut();history.replaceState(null,'',location.pathname);setSession(null);notify('Sesión cerrada.')}
  else if(a==='veh'){selVeh=el.dataset.id;selSeat=null;await loadTaken();renderAll()}
  else if(a==='seat'){selSeat=+el.dataset.n;renderAll()}
@@ -335,6 +369,7 @@ $('voucherFile').addEventListener('change',pickVoucher);
 $('drinks').addEventListener('change',renderAll);
 $('date').addEventListener('change',async()=>{selSeat=null;await loadTaken();renderAll()});
 $('aPass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth()});
+$('aOtp').addEventListener('keydown',e=>{if(e.key==='Enter')verifyCode()});
 const d0=new Date();d0.setMinutes(d0.getMinutes()-d0.getTimezoneOffset());
 const dm=new Date(d0);dm.setDate(dm.getDate()+30);
 $('date').min=$('date').value=d0.toISOString().slice(0,10);$('date').max=dm.toISOString().slice(0,10);
