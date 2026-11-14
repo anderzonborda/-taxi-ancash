@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1a2b">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'none'">
 <title>TAXI ÁNCASH | Transporte Ejecutivo</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -94,7 +94,7 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 
 <main><div class="wrap">
 
-<section id="sAuth" class="card hidden">
+<section id="sAuth" class="card">
 <h2>Portal de clientes</h2>
 <p class="muted" style="margin-top:0">Entra o crea tu cuenta para reservar.</p>
 <div id="credF"><div class="tabs"><button id="tLogin" aria-pressed="true" data-act="mode" data-m="login">Iniciar sesión</button><button id="tReg" aria-pressed="false" data-act="mode" data-m="register">Registrarse</button></div>
@@ -154,19 +154,25 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 
 <div id="bar" class="hidden"><div class="wrap"><div class="total"><small>Total</small><span id="total">S/ 0.00</span></div><button id="cta" data-act="reserve" disabled>Reservar</button></div></div>
 <div id="toast" role="status"></div>
+<div id="err" class="hidden" style="position:fixed;left:12px;right:12px;top:12px;background:#b3261e;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;z-index:20"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://drpysigqxltlyplneeqw.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_Df3niheeHVz5CLEQVCfRzA_u2tHPfd4';
 const WA='51917791958';
+function showErr(m){const e=document.getElementById('err');e.textContent='Error: '+m+' (toca para cerrar)';e.classList.remove('hidden')}
+document.getElementById('err').addEventListener('click',()=>document.getElementById('err').classList.add('hidden'));
+window.addEventListener('error',e=>showErr(e.message));
+window.addEventListener('unhandledrejection',e=>showErr((e.reason&&e.reason.message)||e.reason));
+if(typeof supabase==='undefined')showErr('No cargó la librería de Supabase. Revisa tu internet y recarga.');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'S/ '+Number(n).toFixed(2);
 const HOURS={'6:00 p. m.':18,'7:00 p. m.':19,'8:00 p. m.':20,'9:00 p. m.':21};
 const phoneOf=p=>'+51'+p;
-let pending=null,cool=null;
+let pending=null,cool=null,rid=0,ch=null;
 let me=null,vehicles=[],selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
 
 function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3800)}
@@ -174,12 +180,12 @@ function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');cl
 /* ---------- sesión y rutas ---------- */
 async function setSession(s){
  me=null;
- if(s){const{data}=await sb.from('profiles').select('*').eq('id',s.user.id).single();me=data}
- if(me)live();else if(ch){sb.removeChannel(ch);ch=null}
+ try{if(s){const{data}=await sb.from('profiles').select('*').eq('id',s.user.id).single();me=data}}catch(e){showErr(e.message)}
  route();
+ if(me)live();else if(ch){try{sb.removeChannel(ch)}catch{}ch=null}
 }
 async function route(){
- const adm=location.hash==='#admin';
+ const my=++rid;const adm=location.hash==='#admin';
  const view=!me?'auth':adm?'admin':'main';
  $('sAuth').classList.toggle('hidden',view!=='auth');
  $('sMain').classList.toggle('hidden',view!=='main');
@@ -191,11 +197,15 @@ async function route(){
  }else if(view==='main'){
   $('welcome').textContent=me.name+' ('+me.phone+')';$('adminLink').classList.toggle('hidden',!me.is_admin);
   $('flow').classList.remove('hidden');$('done').classList.add('hidden');
-  await loadVehicles();await loadTaken();renderAll();renderMine();
+  await loadVehicles();await loadTaken();if(my!==rid)return;renderAll();renderMine();
  }
 }
 window.addEventListener('hashchange',route);
-(async()=>{const{data:{session}}=await sb.auth.getSession();setSession(session)})();
+(async()=>{
+ let session=null;
+ try{const r=await Promise.race([sb.auth.getSession(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('La sesión tardó demasiado')),6000))]);session=r.data.session}catch(e){showErr(e.message)}
+ setSession(session);
+})();
 
 function startCool(){
  let n=60;const b=$('resendBtn');b.disabled=true;b.textContent='Reenviar en 60 s';clearInterval(cool);
@@ -261,6 +271,7 @@ function calc(){
  return{late,past,seat,pack,total,deposit:total*.2,balance:total*.8,v};
 }
 function renderAll(){
+ if(!me)return;
  $('vehicles').innerHTML=vehicles.map(v=>`<button class="veh" aria-pressed="${selVeh===v.id}" ${v.active?'':'disabled'} data-act="veh" data-id="${esc(v.id)}"><span>${esc(v.name)}<small>${esc(v.plate)}</small></span><span class="muted">${v.active?'Salida '+esc(v.depart_time):'No disponible'}</span></button>`).join('');
  const L={1:'Copiloto',2:'Atrás izq.',3:'Centro',4:'Atrás der.'};
  const seat=i=>{const t=taken.includes(i);return `<button class="seat" aria-pressed="${selSeat===i}" ${t?'disabled':''} data-act="seat" data-n="${i}">Asiento ${i}<small>${t?'Ocupado':L[i]}</small></button>`};
@@ -323,10 +334,9 @@ async function renderAdmin(){
 }
 
 /* ---------- tiempo real: los cambios llegan a todos los dispositivos ---------- */
-let ch=null;
 function live(){
  if(ch)return;
- ch=sb.channel('live')
+ try{ch=sb.channel('live')
   .on('postgres_changes',{event:'*',schema:'public',table:'vehicles'},async()=>{
    if(!me)return;
    if(location.hash==='#admin'){if(me.is_admin)renderAdmin();return}
@@ -337,6 +347,7 @@ function live(){
    if(location.hash==='#admin'){if(me.is_admin)renderAdmin()}else renderMine();
   })
   .subscribe();
+ }catch(e){ch=null;showErr('Tiempo real no disponible: '+e.message)}
 }
 // los clientes no ven reservas ajenas (por seguridad), así que los asientos se refrescan cada 15 s
 setInterval(async()=>{
