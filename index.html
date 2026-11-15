@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1a2b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🚖%3C/text%3E%3C/svg%3E">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'none'">
 <title>Taxi Áncash | Transporte ejecutivo San Marcos – Antamina</title>
 <meta name="description" content="Reserva tu asiento en camioneta ejecutiva entre San Marcos y Antamina. Elige vehículo y asiento, y paga con Yape o Plin.">
@@ -17,8 +18,8 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TaxiService","name":"Taxi Áncash","description":"Transporte ejecutivo en camioneta entre San Marcos y Antamina.","url":"https://taxiancashvercel.vercel.app/","telephone":"+51917791958","areaServed":["San Marcos","Antamina","Áncash"]}</script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef1f3;--surface:#fff;--ink:#0f1b29;--muted:#566677;--line:#d3dae1;--accent:#f2b705;--on-accent:#1a1400;--hero:#0b1a2b;--ok:#1b7a4b;--err:#b3261e;--wa:#25d366;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#071422;--surface:#0f2236;--ink:#eaf0f6;--muted:#8fa3b6;--line:#1f3650;--hero:#0a1c30;--ok:#5ad19a;--err:#ff8a80;color-scheme:dark}}
+:root{--bg:#eef1f3;--surface:#fff;--ink:#0f1b29;--muted:#566677;--line:#d3dae1;--accent:#f2b705;--on-accent:#1a1400;--hero:#0b1a2b;--ok:#1b7a4b;--err:#b3261e;--wa:#25d366;--sh:0 1px 2px rgba(15,27,41,.06),0 10px 28px rgba(15,27,41,.09);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#071422;--surface:#0f2236;--ink:#eaf0f6;--muted:#8fa3b6;--line:#1f3650;--hero:#0a1c30;--ok:#5ad19a;--err:#ff8a80;--sh:0 1px 2px rgba(0,0,0,.45),0 10px 28px rgba(0,0,0,.4);color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif}
 h1,h2,h3{font-family:"Bricolage Grotesque",Georgia,sans-serif;margin:0;line-height:1.1}
@@ -32,7 +33,7 @@ h1,h2,h3{font-family:"Bricolage Grotesque",Georgia,sans-serif;margin:0;line-heig
 @keyframes draw{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){.ridge{animation:none;stroke-dashoffset:0}}
 main{padding:22px 16px 30px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--sh)}
 h2{font-size:22px;font-weight:800;margin-bottom:12px}
 h2 span{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:700 14px "Instrument Sans";margin-right:10px;vertical-align:3px}
 h3{font-size:17px;font-weight:800;margin:18px 0 6px}
@@ -89,6 +90,28 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 .total{font:800 26px "Bricolage Grotesque";line-height:1;white-space:nowrap}.total small{display:block;font:500 12px "Instrument Sans";color:var(--muted);margin-bottom:2px}
 #toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160px);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:12px;font-weight:600;font-size:14px;max-width:90vw;text-align:center;opacity:0;transition:.3s;z-index:9}
 #toast.show{transform:translate(-50%,0);opacity:1}
+button,.btn{box-shadow:0 2px 6px rgba(0,0,0,.12);transition:transform .08s,box-shadow .15s}
+button.alt,.btn.alt,.seat,.veh,.tabs button{box-shadow:none}
+button:active:not(:disabled),.btn:active{transform:scale(.97)}
+input,select{border-radius:12px}
+@keyframes pop{0%{transform:scale(.92)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.seat[aria-pressed=true]{animation:pop .25s}
+.done .tick{animation:pop .5s}
+.veh{gap:12px}
+.veh .vi{flex:1}
+.veh .vr{display:grid;justify-items:end;gap:2px;text-align:right}
+.ph{width:72px;height:54px;object-fit:cover;border-radius:10px;flex:none}
+.left{font-size:13px;font-weight:700;color:var(--ok)}
+.left.low{color:var(--err)}
+.pay{background:var(--accent);color:var(--on-accent);border-radius:12px;padding:12px 14px;font-weight:600;margin-top:12px}
+.steps{margin:0;padding-left:20px}.steps li{margin:6px 0}
+details{border-top:1px solid var(--line);padding:10px 0}
+summary{font-weight:600;cursor:pointer}
+details p{margin:8px 0 0;color:var(--muted);font-size:14px}
+.fab{position:fixed;right:14px;bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--wa);color:#063b1b;font-weight:700;padding:12px 18px;border-radius:99px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:8}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.mrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
 </style>
 </head>
 <body>
@@ -139,11 +162,11 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 <label class="check"><input id="drinks" type="checkbox"><span>Pack de 6 bebidas por S/ 40.00<br><span class="muted">Se entrega durante el viaje y se suma al total.</span></span></label></div>
 
 <div class="card"><h2><span>5</span>Tu reserva</h2>
-<dl id="summary"></dl><p class="note" id="note"></p>
+<dl id="summary"></dl><div id="payNow" class="pay hidden"></div><p class="note" id="note"></p>
 <p class="muted">Tarifa base S/ 60.00 por asiento. Con menos de 6 horas de anticipación se suma 20% (S/ 72.00).</p></div>
 </div>
 
-<div id="done" class="card done hidden"><div class="tick">✓</div><h2>Reserva registrada</h2>
+<div id="done" class="card done hidden"><div class="tick">✓</div><h2>Reserva registrada</h2><p id="codeTxt" style="font-weight:700;margin:0 0 6px"></p>
 <p class="muted">Administración revisará tu captura y confirmará tu asiento. Envía el resumen por WhatsApp para agilizarlo.</p>
 <div class="gap"><a id="waLink" class="btn wa" href="#" target="_blank" rel="noopener noreferrer">Enviar resumen por WhatsApp</a><button class="alt" data-act="again">Hacer otra reserva</button></div></div>
 
@@ -156,11 +179,37 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 <div id="adminBody">
 <div class="kpis" style="margin-top:14px" id="kpis"></div>
 <h3>Vehículos y salidas</h3><div class="field"><label for="adminDate">Día a gestionar</label><input id="adminDate" type="date"></div><div id="adminVeh"></div>
-<h3>Reservas y capturas de pago</h3><div id="adminBook"></div>
+<h3>Pasajeros del día</h3><div id="manifest"></div><button class="alt" data-act="print" style="margin-top:10px">Imprimir lista del día</button>
+<h3>Reserva manual</h3>
+<p class="muted" style="margin-top:0">Para clientes que reservan por WhatsApp. Usa el día elegido arriba.</p>
+<div class="field"><label for="mName">Nombre del pasajero</label><input id="mName" maxlength="80"></div>
+<div class="field"><label for="mPhone">Celular (opcional)</label><input id="mPhone" inputmode="numeric" maxlength="9"></div>
+<div class="field"><label for="mVeh">Vehículo</label><select id="mVeh"></select></div>
+<div class="field"><label for="mSeat">Asiento</label><select id="mSeat"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+<label class="check" style="margin-bottom:12px"><input id="mDrinks" type="checkbox"><span>Pack de 6 bebidas</span></label>
+<button data-act="manual">Registrar y confirmar</button>
+<h3>Reservas y capturas de pago</h3>
+<div class="chips" id="chips"><button class="alt sm" aria-pressed="true" data-act="flt" data-f="all">Todas</button><button class="alt sm" aria-pressed="false" data-act="flt" data-f="Pendiente">Pendientes</button><button class="alt sm" aria-pressed="false" data-act="flt" data-f="Confirmada">Confirmadas</button><button class="alt sm" aria-pressed="false" data-act="flt" data-f="Cancelada">Canceladas</button></div>
+<div class="field" style="margin-top:10px"><input id="q" type="search" placeholder="Buscar por nombre, celular o código"></div>
+<label class="check" style="margin-bottom:10px"><input id="onlyDay" type="checkbox"><span>Solo el día elegido arriba</span></label>
+<div id="adminBook"></div>
 <div class="acts" style="margin-top:20px"><a class="btn alt" href="#">Volver a reservas</a><button class="alt" data-act="logout">Cerrar sesión</button></div>
 </div></section>
 
+<section id="sInfo">
+<div class="card"><h2>Cómo funciona</h2>
+<ol class="steps"><li>Crea tu cuenta con tu celular.</li><li>Elige la fecha, el vehículo y tu asiento.</li><li>Paga el adelanto por Yape o Plin al 917 791 958 y sube la captura.</li><li>Administración confirma tu asiento.</li></ol></div>
+<div class="card"><h2>Tarifas</h2>
+<dl><dt>Pasaje por asiento</dt><dd>S/ 60.00</dd><dt>Reserva con menos de 6 horas de anticipación</dt><dd>S/ 72.00</dd><dt>Pack de 6 bebidas (opcional)</dt><dd>S/ 40.00</dd><dt>Adelanto al reservar</dt><dd>20%</dd></dl></div>
+<div class="card"><h2>Preguntas frecuentes</h2>
+<details><summary>¿Cuántos pasajeros viajan por camioneta?</summary><p>Cada camioneta tiene 4 asientos para pasajeros.</p></details>
+<details><summary>¿Cómo pago?</summary><p>Con Yape o Plin al 917 791 958. Pagas el 20% de adelanto al reservar y el saldo al abordar.</p></details>
+<details><summary>¿A qué hora salen?</summary><p>Los horarios se muestran al elegir la fecha y el vehículo.</p></details>
+<details><summary>¿Cómo cambio o cancelo mi reserva?</summary><p>Escríbenos por WhatsApp al 917 791 958 y lo vemos.</p></details></div>
+</section>
+
 </div></main>
+<a id="fab" class="fab" href="https://wa.me/51917791958?text=Hola%2C%20quiero%20consultar%20por%20un%20viaje" target="_blank" rel="noopener noreferrer">WhatsApp</a>
 
 <div id="bar" class="hidden"><div class="wrap"><div class="total"><small>Total</small><span id="total">S/ 0.00</span></div><button id="cta" data-act="reserve" disabled>Reservar</button></div></div>
 <div id="toast" role="status"></div>
@@ -171,11 +220,12 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 const SUPABASE_URL='https://drpysigqxltlyplneeqw.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_Df3niheeHVz5CLEQVCfRzA_u2tHPfd4';
 const WA='51917791958';
-function showErr(m){const e=document.getElementById('err');e.textContent='Error: '+m+' (toca para cerrar)';e.classList.remove('hidden')}
+let isAdm=false;const DEBUG=location.search.includes('debug'),BASE_TITLE=document.title;
+function showErr(m,force){if(!force&&!DEBUG&&!isAdm){console.error(m);return}const e=document.getElementById('err');e.textContent='Error: '+m+' (toca para cerrar)';e.classList.remove('hidden')}
 document.getElementById('err').addEventListener('click',()=>document.getElementById('err').classList.add('hidden'));
 window.addEventListener('error',e=>showErr(e.message));
 window.addEventListener('unhandledrejection',e=>showErr((e.reason&&e.reason.message)||e.reason));
-if(typeof supabase==='undefined')showErr('No cargó la librería de Supabase. Revisa tu internet y recarga.');
+if(typeof supabase==='undefined')showErr('No cargó la librería de Supabase. Revisa tu internet y recarga.',true);
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -183,7 +233,7 @@ const money=n=>'S/ '+Number(n).toFixed(2);
 const HOURS={};['a. m.','p. m.'].forEach((ap,i)=>[6,6.5,7,7.5,8,8.5,9].forEach(h=>{const hh=Math.floor(h),mm=h%1?'30':'00';HOURS[hh+':'+mm+' '+ap]=String(hh+(i?12:0)).padStart(2,'0')+':'+mm}));
 const phoneOf=p=>'+51'+p;
 let pending=null,cool=null,rid=0,ch=null;
-let me=null,vehicles=[],days=[],adminDays=[],selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
+let me=null,vehicles=[],days=[],adminDays=[],adminB=[],adminV=[],flt='all',takenBy={},selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
 
 function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3800)}
 
@@ -191,6 +241,7 @@ function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');cl
 async function setSession(s){
  me=null;
  try{if(s){const{data}=await sb.from('profiles').select('*').eq('id',s.user.id).single();me=data}}catch(e){showErr(e.message)}
+ isAdm=!!(me&&me.is_admin);
  if(s&&!me){notify('No se encontró tu perfil. Regístrate de nuevo o escribe al administrador.');try{await sb.auth.signOut()}catch{}}
  route();
  if(me)live();else if(ch){try{sb.removeChannel(ch)}catch{}ch=null}
@@ -202,13 +253,14 @@ async function route(){
  $('sMain').classList.toggle('hidden',view!=='main');
  $('sAdmin').classList.toggle('hidden',view!=='admin');
  $('bar').classList.add('hidden');
+ $('sInfo').classList.toggle('hidden',view==='admin');$('fab').classList.toggle('hidden',view==='admin');
  if(view==='admin'){
   $('denied').classList.toggle('hidden',me.is_admin);$('adminBody').classList.toggle('hidden',!me.is_admin);
   if(me.is_admin)await renderAdmin();
  }else if(view==='main'){
   $('welcome').textContent=me.name+' ('+me.phone+')';$('adminLink').classList.toggle('hidden',!me.is_admin);
   $('flow').classList.remove('hidden');$('done').classList.add('hidden');
-  await loadVehicles();await loadTaken();if(my!==rid)return;renderAll();renderMine();
+  await loadVehicles();await loadTaken();if(my!==rid)return;renderAll();renderMine();pendCount();
  }
 }
 window.addEventListener('hashchange',route);
@@ -265,8 +317,9 @@ async function resendCode(){
 function eff(v){const o=days.find(x=>x.vehicle_id===v.id);return{...v,active:v.active&&!(o&&!o.active),depart_time:(o&&o.depart_time)||v.depart_time}}
 async function loadVehicles(){
  const d=$('date').value;
- const[a,b]=await Promise.all([sb.from('vehicles').select('*').order('id'),d?sb.from('vehicle_days').select('*').eq('trip_date',d):Promise.resolve({data:[]})]);
+ const[a,b,c]=await Promise.all([sb.from('vehicles').select('*').order('id'),d?sb.from('vehicle_days').select('*').eq('trip_date',d):Promise.resolve({data:[]}),d?sb.from('seats_public').select('vehicle_id').eq('trip_date',d).eq('taken',true):Promise.resolve({data:[]})]);
  vehicles=a.data||[];days=b.data||[];
+ takenBy=c.error?null:(c.data||[]).reduce((m,r)=>(m[r.vehicle_id]=(m[r.vehicle_id]||0)+1,m),{});
  const list=vehicles.map(eff),cur=list.find(v=>v.id===selVeh);
  if(!cur||!cur.active){
   const had=selVeh;selVeh=(list.find(v=>v.active)||{}).id||null;
@@ -286,7 +339,10 @@ function calc(){
 }
 function renderAll(){
  if(!me)return;
- $('vehicles').innerHTML=vehicles.map(eff).map(v=>`<button class="veh" aria-pressed="${selVeh===v.id}" ${v.active?'':'disabled'} data-act="veh" data-id="${esc(v.id)}"><span>${esc(v.name)}<small>${esc(v.plate)}</small></span><span class="muted">${v.active?'Salida '+esc(v.depart_time):'No disponible'}</span></button>`).join('');
+ $('vehicles').innerHTML=vehicles.map(eff).map(v=>{
+  const n=takenBy?(takenBy[v.id]||0):null,left=n===null?null:4-n;
+  const right=v.active?'<span class="muted">Salida '+esc(v.depart_time)+'</span>'+(left===null?'':'<span class="left'+(left<=1?' low':'')+'">'+(left<=0?'Lleno':'Quedan '+left)+'</span>'):'<span class="muted">No disponible</span>';
+  return `<button class="veh" aria-pressed="${selVeh===v.id}" ${v.active?'':'disabled'} data-act="veh" data-id="${esc(v.id)}">${v.photo_url?`<img class="ph" src="${esc(v.photo_url)}" alt="" loading="lazy">`:''}<span class="vi">${esc(v.name)}<small>${esc(v.plate)}</small></span><span class="vr">${right}</span></button>`}).join('');
  const L={1:'Copiloto',2:'Atrás izq.',3:'Centro',4:'Atrás der.'};
  const seat=i=>{const t=taken.includes(i);return `<button class="seat" aria-pressed="${selSeat===i}" ${t?'disabled':''} data-act="seat" data-n="${i}">Asiento ${i}<small>${t?'Ocupado':L[i]}</small></button>`};
  $('rowFront').innerHTML='<div class="drv">Chofer</div>'+seat(1);$('rowRear').innerHTML=seat(2)+seat(3)+seat(4);
@@ -294,6 +350,7 @@ function renderAll(){
  const when=date?new Date(date+'T12:00:00').toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long'})+(c.v?', '+c.v.depart_time:''):'Sin fecha';
  $('summary').innerHTML=`<dt>Salida</dt><dd>${esc(when)}</dd><dt>Unidad</dt><dd>${c.v?esc(c.v.name):'-'}</dd><dt>Asiento</dt><dd>${selSeat?'N.º '+selSeat:'Sin elegir'}</dd><dt>Pasaje</dt><dd>${money(c.seat)}${c.late?' (+20%)':''}</dd><dt>Bebidas</dt><dd>${c.pack?money(c.pack):'No'}</dd><dt>Adelanto (20%)</dt><dd>${money(c.deposit)}</dd><dt>Saldo al abordar</dt><dd>${money(c.balance)}</dd>`;
  $('total').textContent=money(selSeat?c.total:0);
+ $('payNow').innerHTML=selSeat?'Paga ahora: <b>'+money(c.deposit)+'</b> por Yape o Plin al 917 791 958.':'';$('payNow').classList.toggle('hidden',!selSeat);
  let msg='Todo listo. Toca Reservar.',col='var(--ok)',label='Reservar',off=false;
  if(!c.v){msg='No hay unidades disponibles.';col='var(--err)';label='Sin unidades';off=true}
  else if(c.past){msg='Esa hora de salida ya pasó. Elige otra fecha.';col='var(--err)';label='Elige otra fecha';off=true}
@@ -312,7 +369,7 @@ async function pickVoucher(e){
  renderAll();
 }
 function waUrl(b){
- const m=['*RESERVA - TAXI ÁNCASH*','Ruta: San Marcos ↔ Antamina','--------------------------',`*Pasajero:* ${me.name}`,`*Celular:* ${me.phone}`,`*Fecha:* ${b.trip_date} (${(vehicles.map(eff).find(x=>x.id===b.vehicle_id)||{}).depart_time||''})`,`*Unidad:* ${b.vehicles.name} (${b.vehicles.plate})`,`*Asiento:* #${b.seat}`,`*Adicional:* ${b.drinks?'Pack 6 bebidas (S/ 40.00)':'Ninguno'}`,'--------------------------',`*Total:* ${money(b.total)}`,`*Adelanto (20%):* ${money(b.deposit)}`,`*Saldo:* ${money(b.balance)}`,'*Pago:* Yape / Plin (captura subida al portal)'].join('\n');
+ const m=['*RESERVA - TAXI ÁNCASH*','Ruta: San Marcos ↔ Antamina','--------------------------',`*Reserva N.º:* ${b.id}`,`*Pasajero:* ${me.name}`,`*Celular:* ${me.phone}`,`*Fecha:* ${b.trip_date} (${(vehicles.map(eff).find(x=>x.id===b.vehicle_id)||{}).depart_time||''})`,`*Unidad:* ${b.vehicles.name} (${b.vehicles.plate})`,`*Asiento:* #${b.seat}`,`*Adicional:* ${b.drinks?'Pack 6 bebidas (S/ 40.00)':'Ninguno'}`,'--------------------------',`*Total:* ${money(b.total)}`,`*Adelanto (20%):* ${money(b.deposit)}`,`*Saldo:* ${money(b.balance)}`,'*Pago:* Yape / Plin (captura subida al portal)'].join('\n');
  return `https://wa.me/${WA}?text=${encodeURIComponent(m)}`;
 }
 async function reserve(){
@@ -329,30 +386,52 @@ async function reserve(){
   await loadTaken();return renderAll();
  }
  lastBooking=data;blob=null;selSeat=null;$('voucherFile').value='';$('vImg').classList.add('hidden');$('dropTxt').textContent='Toca para subir la captura';
- $('waLink').href=waUrl(data);$('flow').classList.add('hidden');$('done').classList.remove('hidden');$('bar').classList.add('hidden');
+ $('waLink').href=waUrl(data);$('codeTxt').textContent='Tu código de reserva es #'+data.id+'.';$('flow').classList.add('hidden');$('done').classList.remove('hidden');$('bar').classList.add('hidden');
  scrollTo({top:0,behavior:'smooth'});renderMine();
 }
 async function renderMine(){
- const{data}=await sb.from('bookings').select('*, vehicles(name)').eq('user_id',me.id).order('created_at',{ascending:false});
- $('mine').innerHTML=(data&&data.length)?data.map(b=>`<div class="item"><div class="between"><b>${esc(b.vehicles.name)}, asiento ${b.seat}</b><span class="pill ${b.status==='Confirmada'?'ok':b.status==='Cancelada'?'no':''}">${esc(b.status)}</span></div><div class="muted" style="margin-top:4px">${esc(b.trip_date)}. Total ${money(b.total)}, adelanto ${money(b.deposit)}.</div></div>`).join(''):'Aún no tienes viajes registrados.';
+ const{data}=await sb.from('bookings').select('*, vehicles(name)').eq('user_id',me.id).is('guest_name',null).order('created_at',{ascending:false});
+ $('mine').innerHTML=(data&&data.length)?data.map(b=>`<div class="item"><div class="between"><b>#${b.id} ${esc(b.vehicles.name)}, asiento ${b.seat}</b><span class="pill ${b.status==='Confirmada'?'ok':b.status==='Cancelada'?'no':''}">${esc(b.status)}</span></div><div class="muted" style="margin-top:4px">${esc(b.trip_date)}. Total ${money(b.total)}, adelanto ${money(b.deposit)}.</div></div>`).join(''):'Aún no tienes viajes registrados.';
 }
 
 /* ---------- administración (solo cuentas con is_admin en la base de datos) ---------- */
+function pname(b){return b.guest_name||(b.profiles&&b.profiles.name)||''}
+function pphone(b){return b.guest_phone||(b.profiles&&b.profiles.phone)||''}
+function badge(n){const l=$('adminLink');if(l)l.textContent=n?'Panel admin ('+n+')':'Panel admin';document.title=(n?'('+n+') ':'')+BASE_TITLE}
+async function pendCount(){if(!me||!me.is_admin)return;const r=await sb.from('bookings').select('id',{count:'exact',head:true}).eq('status','Pendiente');if(!r.error)badge(r.count||0)}
+function dayList(){const ad=$('adminDate').value;return adminV.map(v=>{const o=adminDays.find(x=>x.vehicle_id===v.id);return{v,time:(o&&o.depart_time)||v.depart_time,off:!!(o&&!o.active),rows:adminB.filter(b=>b.trip_date===ad&&b.vehicle_id===v.id&&b.status!=='Cancelada').sort((a,b)=>a.seat-b.seat)}})}
+function drawBookings(){
+ const q=($('q').value||'').trim().toLowerCase(),ad=$('adminDate').value,only=$('onlyDay').checked;
+ const L=adminB.filter(b=>(flt==='all'||b.status===flt)&&(!only||b.trip_date===ad)&&(!q||(pname(b)+' '+pphone(b)+' '+b.id).toLowerCase().includes(q)));
+ $('adminBook').innerHTML=L.length?L.map(b=>`<div class="item"><div class="between"><b>#${b.id} ${esc(pname(b))}</b><span class="pill ${b.status==='Confirmada'?'ok':b.status==='Cancelada'?'no':''}">${esc(b.status)}</span></div><div class="muted" style="margin-top:6px">${esc(pphone(b))}${b.guest_name?' (reserva manual)':''}<br>${esc(b.trip_date)}. ${esc(b.vehicles.name)}, asiento ${b.seat}.<br>Adelanto ${money(b.deposit)}, saldo ${money(b.balance)}${b.drinks?', con pack de bebidas':''}.</div><div id="v_${b.id}"></div><div class="acts">${b.voucher_path?`<button class="alt sm" data-act="voucher" data-id="${b.id}" data-path="${esc(b.voucher_path)}">Ver captura</button>`:''}${b.status!=='Confirmada'?`<button class="sm" data-act="bstatus" data-id="${b.id}" data-s="Confirmada">Confirmar</button>`:''}${b.status!=='Cancelada'?`<button class="alt sm" data-act="bstatus" data-id="${b.id}" data-s="Cancelada">Cancelar y liberar asiento</button>`:''}</div></div>`).join(''):'<p class="muted">No hay reservas con ese filtro.</p>';
+}
+function printList(){
+ const ad=$('adminDate').value;
+ const rows=dayList().map(g=>'<h2>'+esc(g.v.name)+' ('+esc(g.v.plate)+') - '+esc(g.time)+(g.off?' - NO SALE':'')+'</h2><table>'+(g.rows.length?g.rows.map(b=>'<tr><td>Asiento '+b.seat+'</td><td>'+esc(pname(b))+'</td><td>'+esc(pphone(b))+'</td><td>'+esc(b.status)+(b.drinks?', bebidas':'')+'</td></tr>').join(''):'<tr><td>Sin pasajeros</td></tr>')+'</table>').join('');
+ const w=window.open('','_blank');
+ if(!w)return notify('Tu navegador bloqueó la ventana. Permite las ventanas emergentes.');
+ w.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Pasajeros '+esc(ad)+'</title><style>body{font-family:Arial,sans-serif;padding:16px}h1{font-size:20px}h2{font-size:16px;margin:18px 0 6px}table{width:100%;border-collapse:collapse}td{border:1px solid #999;padding:6px;font-size:14px}</style></head><body><h1>Taxi Áncash - Pasajeros del '+esc(ad)+'</h1>'+rows+'</body></html>');
+ w.document.close();setTimeout(()=>w.print(),400);
+}
 async function renderAdmin(){
  const ad=$('adminDate').value;
  const[vs,bs,ds]=await Promise.all([sb.from('vehicles').select('*').order('id'),sb.from('bookings').select('*, profiles(name,phone), vehicles(name,plate)').order('created_at',{ascending:false}),ad?sb.from('vehicle_days').select('*').eq('trip_date',ad):Promise.resolve({data:[]})]);
  if(vs.error||bs.error)return notify('No se pudieron cargar los datos.');
- adminDays=ds.data||[];
- const B=bs.data,act=B.filter(b=>b.status!=='Cancelada');
- $('kpis').innerHTML=`<div class="kpi"><b>${act.length}</b><span>Activas</span></div><div class="kpi"><b>${B.filter(b=>b.status==='Confirmada').length}</b><span>Confirmadas</span></div><div class="kpi"><b>${money(act.reduce((a,b)=>a+Number(b.deposit),0))}</b><span>Adelantos</span></div>`;
+ adminDays=ds.data||[];adminV=vs.data;adminB=bs.data;
+ const B=adminB,act=B.filter(b=>b.status!=='Cancelada'),pend=B.filter(b=>b.status==='Pendiente').length;
+ badge(pend);
+ $('kpis').innerHTML=`<div class="kpi"><b>${pend}</b><span>Pendientes</span></div><div class="kpi"><b>${B.filter(b=>b.status==='Confirmada').length}</b><span>Confirmadas</span></div><div class="kpi"><b>${money(act.reduce((a,b)=>a+Number(b.deposit),0))}</b><span>Adelantos</span></div>`;
  const opts=(cur,blank)=>(blank?`<option value="">Hora habitual</option>`:'')+Object.keys(HOURS).map(h=>`<option value="${h}" ${cur===h?'selected':''}>${h}</option>`).join('');
- $('adminVeh').innerHTML=vs.data.map(v=>{
+ $('adminVeh').innerHTML=adminV.map(v=>{
   const o=adminDays.find(x=>x.vehicle_id===v.id),off=!!(o&&!o.active),n=act.filter(b=>b.vehicle_id===v.id&&b.trip_date===ad).length;
   return `<div class="item"><div class="between"><div><b>${esc(v.name)}</b> <span class="muted">${esc(v.plate)}</span><div class="muted">Reservas ese día: ${n}</div></div><button class="sm ${v.active?'wa':'bad'}" data-act="vtoggle" data-id="${esc(v.id)}" data-on="${v.active}">${v.active?'En servicio':'Fuera de servicio'}</button></div>
   <div class="field" style="margin:10px 0 0"><label for="ti_${esc(v.id)}">Hora habitual de salida</label><select id="ti_${esc(v.id)}" data-act="vtime" data-id="${esc(v.id)}">${opts(v.depart_time,false)}</select></div>
   <div class="field" style="margin:10px 0 0"><label for="td_${esc(v.id)}">Hora solo para el ${esc(ad)}</label><select id="td_${esc(v.id)}" data-act="dtime" data-id="${esc(v.id)}">${opts(o&&o.depart_time,true)}</select></div>
-  <div class="acts"><button class="sm ${off?'wa':'bad'}" data-act="dtoggle" data-id="${esc(v.id)}" data-off="${off}">${off?'Habilitar este día':'Deshabilitar este día'}</button></div></div>`}).join('');
- $('adminBook').innerHTML=B.length?B.map(b=>`<div class="item"><div class="between"><b>${esc(b.profiles.name)} (${esc(b.profiles.phone)})</b><span class="pill ${b.status==='Confirmada'?'ok':b.status==='Cancelada'?'no':''}">${esc(b.status)}</span></div><div class="muted" style="margin-top:6px">${esc(b.trip_date)}. ${esc(b.vehicles.name)}, asiento ${b.seat}.<br>Adelanto ${money(b.deposit)}, saldo ${money(b.balance)}${b.drinks?', con pack de bebidas':''}.</div><div id="v_${b.id}"></div><div class="acts">${b.voucher_path?`<button class="alt sm" data-act="voucher" data-id="${b.id}" data-path="${esc(b.voucher_path)}">Ver captura</button>`:''}<button class="sm" data-act="bstatus" data-id="${b.id}" data-s="Confirmada">Confirmar</button><button class="alt sm" data-act="bstatus" data-id="${b.id}" data-s="Cancelada">Cancelar</button></div></div>`).join(''):'<p class="muted">No hay reservas registradas.</p>';
+  <div class="acts"><button class="sm ${off?'wa':'bad'}" data-act="dtoggle" data-id="${esc(v.id)}" data-off="${off}">${off?'Habilitar este día':'Deshabilitar este día'}</button></div>
+  <div class="field" style="margin:10px 0 0"><label for="ph_${esc(v.id)}">Foto del vehículo</label>${v.photo_url?`<img class="thumb" style="margin:0 0 8px" alt="Foto de ${esc(v.name)}" src="${esc(v.photo_url)}">`:''}<input id="ph_${esc(v.id)}" type="file" accept="image/*" data-act="vphoto" data-id="${esc(v.id)}"></div></div>`}).join('');
+ $('manifest').innerHTML=dayList().map(g=>`<div class="item"><div class="between"><b>${esc(g.v.name)} <span class="muted">${esc(g.v.plate)}, ${esc(g.time)}</span></b><span class="pill ${g.off?'no':''}">${g.off?'No sale':g.rows.length+' de 4'}</span></div>${g.rows.length?g.rows.map(b=>`<div class="mrow"><span>Asiento ${b.seat}</span><span><b>${esc(pname(b))}</b><br><span class="muted">${esc(pphone(b))}${b.drinks?' (con bebidas)':''}</span></span><span class="pill ${b.status==='Confirmada'?'ok':''}">${esc(b.status)}</span></div>`).join(''):'<div class="muted" style="margin-top:6px">Sin pasajeros.</div>'}</div>`).join('');
+ const cur=$('mVeh').value;$('mVeh').innerHTML=adminV.filter(v=>v.active).map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(cur)$('mVeh').value=cur;
+ drawBookings();
 }
 function done(r,ok){
  if(r.error)notify('No se pudo guardar: '+r.error.message);
@@ -373,9 +452,10 @@ function live(){
  try{ch=sb.channel('live')
   .on('postgres_changes',{event:'*',schema:'public',table:'vehicles'},onVeh)
   .on('postgres_changes',{event:'*',schema:'public',table:'vehicle_days'},onVeh)
-  .on('postgres_changes',{event:'*',schema:'public',table:'seats_public'},async()=>{if(!me||location.hash==='#admin')return;await loadTaken();renderAll()})
-  .on('postgres_changes',{event:'*',schema:'public',table:'bookings'},()=>{
+  .on('postgres_changes',{event:'*',schema:'public',table:'seats_public'},async()=>{if(!me||location.hash==='#admin')return;await loadVehicles();await loadTaken();renderAll()})
+  .on('postgres_changes',{event:'*',schema:'public',table:'bookings'},p=>{
    if(!me)return;
+   if(me.is_admin){if(p.eventType==='INSERT')notify('Nueva reserva recibida');pendCount()}
    if(location.hash==='#admin'){if(me.is_admin)renderAdmin()}else renderMine();
   })
   .subscribe();
@@ -383,7 +463,7 @@ function live(){
 }
 // los clientes no ven reservas ajenas (por seguridad), así que los asientos se refrescan cada 15 s
 setInterval(async()=>{
- if(me&&location.hash!=='#admin'&&!$('flow').classList.contains('hidden')&&!document.hidden){await loadTaken();renderAll()}
+ if(me&&location.hash!=='#admin'&&!$('flow').classList.contains('hidden')&&!document.hidden){await loadVehicles();await loadTaken();renderAll()}
 },15000);
 
 /* ---------- eventos ---------- */
@@ -403,17 +483,32 @@ document.addEventListener('click',async e=>{
  else if(a==='vtoggle')done(await sb.from('vehicles').update({active:el.dataset.on!=='true'}).eq('id',el.dataset.id).select(),'Estado de la unidad actualizado.');
  else if(a==='bstatus')done(await sb.from('bookings').update({status:el.dataset.s}).eq('id',el.dataset.id).select(),'Reserva '+el.dataset.s.toLowerCase()+'.');
  else if(a==='dtoggle'){const ad=$('adminDate').value;if(!ad)return notify('Elige un día.');const o=adminDays.find(x=>x.vehicle_id===el.dataset.id)||{};const turnOn=el.dataset.off==='true';await saveDay({vehicle_id:el.dataset.id,trip_date:ad,active:turnOn,depart_time:o.depart_time||null},turnOn?'Unidad habilitada ese día.':'Unidad deshabilitada ese día.')}
+ else if(a==='flt'){flt=el.dataset.f;document.querySelectorAll('#chips button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===flt));drawBookings()}
+ else if(a==='print')printList();
+ else if(a==='manual'){
+  const ad=$('adminDate').value,name=$('mName').value.trim();
+  if(!ad)return notify('Elige el día arriba.');
+  if(!name)return notify('Escribe el nombre del pasajero.');
+  if(!$('mVeh').value)return notify('No hay vehículos en servicio.');
+  const r=await sb.from('bookings').insert({trip_date:ad,vehicle_id:$('mVeh').value,seat:+$('mSeat').value,drinks:$('mDrinks').checked,guest_name:name,guest_phone:$('mPhone').value.trim()||null,status:'Confirmada'}).select();
+  if(r.error)notify(r.error.code==='23505'?'Ese asiento ya está ocupado ese día.':r.error.code==='P0001'?r.error.message:'No se pudo registrar: '+r.error.message);
+  else{notify('Reserva manual registrada y confirmada.');$('mName').value='';$('mPhone').value='';$('mDrinks').checked=false}
+  renderAdmin()}
  else if(a==='voucher'){const{data,error}=await sb.storage.from('vouchers').createSignedUrl(el.dataset.path,300);if(error)return notify('No se pudo abrir la captura.');$('v_'+el.dataset.id).innerHTML=`<img class="thumb" style="margin-left:0" alt="Captura de pago" src="${esc(data.signedUrl)}">`}
 });
 document.addEventListener('change',async e=>{
  const el=e.target;
  if(el.dataset.act==='vtime')done(await sb.from('vehicles').update({depart_time:el.value}).eq('id',el.dataset.id).select(),'Hora habitual actualizada.');
+ else if(el.dataset.act==='vphoto'){const f=el.files[0];if(!f)return;try{const b=await compress(f),path=el.dataset.id+'.jpg';const up=await sb.storage.from('vehicles').upload(path,b,{contentType:'image/jpeg',upsert:true});if(up.error)return notify('No se pudo subir la foto: '+up.error.message);const url=sb.storage.from('vehicles').getPublicUrl(path).data.publicUrl+'?v='+Date.now();done(await sb.from('vehicles').update({photo_url:url}).eq('id',el.dataset.id).select(),'Foto actualizada.')}catch(e){notify('Esa imagen no se pudo leer.')}}
  else if(el.dataset.act==='dtime'){const ad=$('adminDate').value;if(!ad)return notify('Elige un día.');const o=adminDays.find(x=>x.vehicle_id===el.dataset.id)||{};await saveDay({vehicle_id:el.dataset.id,trip_date:ad,active:o.active!==false,depart_time:el.value||null},'Hora de ese día guardada.')}
 });
 $('voucherFile').addEventListener('change',pickVoucher);
 $('drinks').addEventListener('change',renderAll);
 $('date').addEventListener('change',async()=>{selSeat=null;await loadVehicles();await loadTaken();renderAll()});
 $('adminDate').addEventListener('change',renderAdmin);
+$('q').addEventListener('input',drawBookings);
+$('onlyDay').addEventListener('change',drawBookings);
+document.addEventListener('visibilitychange',()=>{if(document.hidden||!me)return;if(location.hash==='#admin'){if(me.is_admin)renderAdmin()}else if(!$('flow').classList.contains('hidden')){loadVehicles().then(loadTaken).then(renderAll);renderMine()}});
 $('aPass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth()});
 $('aOtp').addEventListener('keydown',e=>{if(e.key==='Enter')verifyCode()});
 const d0=new Date();d0.setMinutes(d0.getMinutes()-d0.getTimezoneOffset());
