@@ -5,7 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1a2b">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'none'">
-<title>TAXI ÁNCASH | Transporte Ejecutivo</title>
+<title>Taxi Áncash | Transporte ejecutivo San Marcos – Antamina</title>
+<meta name="description" content="Reserva tu asiento en camioneta ejecutiva entre San Marcos y Antamina. Elige vehículo y asiento, y paga con Yape o Plin.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://taxiancashvercel.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_PE">
+<meta property="og:title" content="Taxi Áncash | Transporte ejecutivo San Marcos – Antamina">
+<meta property="og:description" content="Reserva tu asiento en camioneta ejecutiva entre San Marcos y Antamina. Paga con Yape o Plin.">
+<meta property="og:url" content="https://taxiancashvercel.vercel.app/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TaxiService","name":"Taxi Áncash","description":"Transporte ejecutivo en camioneta entre San Marcos y Antamina.","url":"https://taxiancashvercel.vercel.app/","telephone":"+51917791958","areaServed":["San Marcos","Antamina","Áncash"]}</script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef1f3;--surface:#fff;--ink:#0f1b29;--muted:#566677;--line:#d3dae1;--accent:#f2b705;--on-accent:#1a1400;--hero:#0b1a2b;--ok:#1b7a4b;--err:#b3261e;--wa:#25d366;color-scheme:light}
@@ -30,6 +39,7 @@ h3{font-size:17px;font-weight:800;margin:18px 0 6px}
 label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
 input,select{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none}
+input:-webkit-autofill{-webkit-box-shadow:0 0 0 100px var(--bg) inset;-webkit-text-fill-color:var(--ink);caret-color:var(--ink)}
 .field{margin-bottom:12px}
 .muted{color:var(--muted);font-size:14px}
 .hidden{display:none!important}
@@ -145,7 +155,7 @@ dt{color:var(--muted)}dd{margin:0;font-weight:600;text-align:right}
 <p id="denied" class="muted hidden">Esta sección es solo para administradores. Entra con una cuenta de administrador.</p>
 <div id="adminBody">
 <div class="kpis" style="margin-top:14px" id="kpis"></div>
-<h3>Vehículos y ocupación</h3><div id="adminVeh"></div>
+<h3>Vehículos y salidas</h3><div class="field"><label for="adminDate">Día a gestionar</label><input id="adminDate" type="date"></div><div id="adminVeh"></div>
 <h3>Reservas y capturas de pago</h3><div id="adminBook"></div>
 <div class="acts" style="margin-top:20px"><a class="btn alt" href="#">Volver a reservas</a><button class="alt" data-act="logout">Cerrar sesión</button></div>
 </div></section>
@@ -173,7 +183,7 @@ const money=n=>'S/ '+Number(n).toFixed(2);
 const HOURS={'6:00 p. m.':18,'7:00 p. m.':19,'8:00 p. m.':20,'9:00 p. m.':21};
 const phoneOf=p=>'+51'+p;
 let pending=null,cool=null,rid=0,ch=null;
-let me=null,vehicles=[],selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
+let me=null,vehicles=[],days=[],adminDays=[],selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
 
 function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3800)}
 
@@ -181,6 +191,7 @@ function notify(m){const t=$('toast');t.textContent=m;t.classList.add('show');cl
 async function setSession(s){
  me=null;
  try{if(s){const{data}=await sb.from('profiles').select('*').eq('id',s.user.id).single();me=data}}catch(e){showErr(e.message)}
+ if(s&&!me){notify('No se encontró tu perfil. Regístrate de nuevo o escribe al administrador.');try{await sb.auth.signOut()}catch{}}
  route();
  if(me)live();else if(ch){try{sb.removeChannel(ch)}catch{}ch=null}
 }
@@ -251,12 +262,15 @@ async function resendCode(){
 }
 
 /* ---------- reserva ---------- */
+function eff(v){const o=days.find(x=>x.vehicle_id===v.id);return{...v,active:v.active&&!(o&&!o.active),depart_time:(o&&o.depart_time)||v.depart_time}}
 async function loadVehicles(){
- const{data}=await sb.from('vehicles').select('*').order('id');vehicles=data||[];
- const cur=vehicles.find(v=>v.id===selVeh);
+ const d=$('date').value;
+ const[a,b]=await Promise.all([sb.from('vehicles').select('*').order('id'),d?sb.from('vehicle_days').select('*').eq('trip_date',d):Promise.resolve({data:[]})]);
+ vehicles=a.data||[];days=b.data||[];
+ const list=vehicles.map(eff),cur=list.find(v=>v.id===selVeh);
  if(!cur||!cur.active){
-  const had=selVeh;selVeh=(vehicles.find(v=>v.active)||{}).id||null;
-  if(had&&had!==selVeh){selSeat=null;notify('Esa unidad ya no está disponible. Elige otra.')}
+  const had=selVeh;selVeh=(list.find(v=>v.active)||{}).id||null;
+  if(had&&had!==selVeh){selSeat=null;notify('Esa unidad no sale ese día. Elige otra.')}
  }
 }
 async function loadTaken(){
@@ -265,14 +279,14 @@ async function loadTaken(){
  if(taken.includes(selSeat))selSeat=null;
 }
 function calc(){
- const v=vehicles.find(x=>x.id===selVeh),date=$('date').value;let late=false,past=false;
+ const v=vehicles.map(eff).find(x=>x.id===selVeh),date=$('date').value;let late=false,past=false;
  if(v&&date){const dep=new Date(`${date}T${String(HOURS[v.depart_time]||19).padStart(2,'0')}:00:00-05:00`),h=(dep-new Date())/36e5;late=h>=0&&h<=6;past=h<0}
  const seat=late?72:60,pack=$('drinks').checked?40:0,total=seat+pack;
  return{late,past,seat,pack,total,deposit:total*.2,balance:total*.8,v};
 }
 function renderAll(){
  if(!me)return;
- $('vehicles').innerHTML=vehicles.map(v=>`<button class="veh" aria-pressed="${selVeh===v.id}" ${v.active?'':'disabled'} data-act="veh" data-id="${esc(v.id)}"><span>${esc(v.name)}<small>${esc(v.plate)}</small></span><span class="muted">${v.active?'Salida '+esc(v.depart_time):'No disponible'}</span></button>`).join('');
+ $('vehicles').innerHTML=vehicles.map(eff).map(v=>`<button class="veh" aria-pressed="${selVeh===v.id}" ${v.active?'':'disabled'} data-act="veh" data-id="${esc(v.id)}"><span>${esc(v.name)}<small>${esc(v.plate)}</small></span><span class="muted">${v.active?'Salida '+esc(v.depart_time):'No disponible'}</span></button>`).join('');
  const L={1:'Copiloto',2:'Atrás izq.',3:'Centro',4:'Atrás der.'};
  const seat=i=>{const t=taken.includes(i);return `<button class="seat" aria-pressed="${selSeat===i}" ${t?'disabled':''} data-act="seat" data-n="${i}">Asiento ${i}<small>${t?'Ocupado':L[i]}</small></button>`};
  $('rowFront').innerHTML='<div class="drv">Chofer</div>'+seat(1);$('rowRear').innerHTML=seat(2)+seat(3)+seat(4);
@@ -298,7 +312,7 @@ async function pickVoucher(e){
  renderAll();
 }
 function waUrl(b){
- const m=['*RESERVA - TAXI ÁNCASH*','Ruta: San Marcos ↔ Antamina','--------------------------',`*Pasajero:* ${me.name}`,`*Celular:* ${me.phone}`,`*Fecha:* ${b.trip_date} (${b.vehicles.depart_time||''})`,`*Unidad:* ${b.vehicles.name} (${b.vehicles.plate})`,`*Asiento:* #${b.seat}`,`*Adicional:* ${b.drinks?'Pack 6 bebidas (S/ 40.00)':'Ninguno'}`,'--------------------------',`*Total:* ${money(b.total)}`,`*Adelanto (20%):* ${money(b.deposit)}`,`*Saldo:* ${money(b.balance)}`,'*Pago:* Yape / Plin (captura subida al portal)'].join('\n');
+ const m=['*RESERVA - TAXI ÁNCASH*','Ruta: San Marcos ↔ Antamina','--------------------------',`*Pasajero:* ${me.name}`,`*Celular:* ${me.phone}`,`*Fecha:* ${b.trip_date} (${(vehicles.map(eff).find(x=>x.id===b.vehicle_id)||{}).depart_time||''})`,`*Unidad:* ${b.vehicles.name} (${b.vehicles.plate})`,`*Asiento:* #${b.seat}`,`*Adicional:* ${b.drinks?'Pack 6 bebidas (S/ 40.00)':'Ninguno'}`,'--------------------------',`*Total:* ${money(b.total)}`,`*Adelanto (20%):* ${money(b.deposit)}`,`*Saldo:* ${money(b.balance)}`,'*Pago:* Yape / Plin (captura subida al portal)'].join('\n');
  return `https://wa.me/${WA}?text=${encodeURIComponent(m)}`;
 }
 async function reserve(){
@@ -325,23 +339,41 @@ async function renderMine(){
 
 /* ---------- administración (solo cuentas con is_admin en la base de datos) ---------- */
 async function renderAdmin(){
- const[vs,bs]=await Promise.all([sb.from('vehicles').select('*').order('id'),sb.from('bookings').select('*, profiles(name,phone), vehicles(name,plate)').order('created_at',{ascending:false})]);
+ const ad=$('adminDate').value;
+ const[vs,bs,ds]=await Promise.all([sb.from('vehicles').select('*').order('id'),sb.from('bookings').select('*, profiles(name,phone), vehicles(name,plate)').order('created_at',{ascending:false}),ad?sb.from('vehicle_days').select('*').eq('trip_date',ad):Promise.resolve({data:[]})]);
  if(vs.error||bs.error)return notify('No se pudieron cargar los datos.');
+ adminDays=ds.data||[];
  const B=bs.data,act=B.filter(b=>b.status!=='Cancelada');
  $('kpis').innerHTML=`<div class="kpi"><b>${act.length}</b><span>Activas</span></div><div class="kpi"><b>${B.filter(b=>b.status==='Confirmada').length}</b><span>Confirmadas</span></div><div class="kpi"><b>${money(act.reduce((a,b)=>a+Number(b.deposit),0))}</b><span>Adelantos</span></div>`;
- $('adminVeh').innerHTML=vs.data.map(v=>`<div class="item"><div class="between"><div><b>${esc(v.name)}</b> <span class="muted">${esc(v.plate)}</span><div class="muted">Reservas activas: ${act.filter(b=>b.vehicle_id===v.id).length}</div></div><button class="sm ${v.active?'wa':'bad'}" data-act="vtoggle" data-id="${esc(v.id)}" data-on="${v.active}">${v.active?'Disponible':'No disponible'}</button></div><div class="field" style="margin:10px 0 0"><label for="ti_${esc(v.id)}">Hora de salida</label><select id="ti_${esc(v.id)}" data-act="vtime" data-id="${esc(v.id)}">${Object.keys(HOURS).map(h=>`<option ${v.depart_time===h?'selected':''}>${h}</option>`).join('')}</select></div></div>`).join('');
+ const opts=(cur,blank)=>(blank?`<option value="">Hora habitual</option>`:'')+Object.keys(HOURS).map(h=>`<option value="${h}" ${cur===h?'selected':''}>${h}</option>`).join('');
+ $('adminVeh').innerHTML=vs.data.map(v=>{
+  const o=adminDays.find(x=>x.vehicle_id===v.id),off=!!(o&&!o.active),n=act.filter(b=>b.vehicle_id===v.id&&b.trip_date===ad).length;
+  return `<div class="item"><div class="between"><div><b>${esc(v.name)}</b> <span class="muted">${esc(v.plate)}</span><div class="muted">Reservas ese día: ${n}</div></div><button class="sm ${v.active?'wa':'bad'}" data-act="vtoggle" data-id="${esc(v.id)}" data-on="${v.active}">${v.active?'En servicio':'Fuera de servicio'}</button></div>
+  <div class="field" style="margin:10px 0 0"><label for="ti_${esc(v.id)}">Hora habitual de salida</label><select id="ti_${esc(v.id)}" data-act="vtime" data-id="${esc(v.id)}">${opts(v.depart_time,false)}</select></div>
+  <div class="field" style="margin:10px 0 0"><label for="td_${esc(v.id)}">Hora solo para el ${esc(ad)}</label><select id="td_${esc(v.id)}" data-act="dtime" data-id="${esc(v.id)}">${opts(o&&o.depart_time,true)}</select></div>
+  <div class="acts"><button class="sm ${off?'wa':'bad'}" data-act="dtoggle" data-id="${esc(v.id)}" data-off="${off}">${off?'Habilitar este día':'Deshabilitar este día'}</button></div></div>`}).join('');
  $('adminBook').innerHTML=B.length?B.map(b=>`<div class="item"><div class="between"><b>${esc(b.profiles.name)} (${esc(b.profiles.phone)})</b><span class="pill ${b.status==='Confirmada'?'ok':b.status==='Cancelada'?'no':''}">${esc(b.status)}</span></div><div class="muted" style="margin-top:6px">${esc(b.trip_date)}. ${esc(b.vehicles.name)}, asiento ${b.seat}.<br>Adelanto ${money(b.deposit)}, saldo ${money(b.balance)}${b.drinks?', con pack de bebidas':''}.</div><div id="v_${b.id}"></div><div class="acts">${b.voucher_path?`<button class="alt sm" data-act="voucher" data-id="${b.id}" data-path="${esc(b.voucher_path)}">Ver captura</button>`:''}<button class="sm" data-act="bstatus" data-id="${b.id}" data-s="Confirmada">Confirmar</button><button class="alt sm" data-act="bstatus" data-id="${b.id}" data-s="Cancelada">Cancelar</button></div></div>`).join(''):'<p class="muted">No hay reservas registradas.</p>';
 }
+function done(r,ok){
+ if(r.error)notify('No se pudo guardar: '+r.error.message);
+ else if(!r.data||!r.data.length)notify('No se guardó: tu cuenta no tiene permiso de administrador en la base de datos.');
+ else notify(ok);
+ renderAdmin();
+}
+async function saveDay(row,ok){done(await sb.from('vehicle_days').upsert(row,{onConflict:'vehicle_id,trip_date'}).select(),ok)}
 
 /* ---------- tiempo real: los cambios llegan a todos los dispositivos ---------- */
 function live(){
  if(ch)return;
+ const onVeh=async()=>{
+  if(!me)return;
+  if(location.hash==='#admin'){if(me.is_admin)renderAdmin();return}
+  await loadVehicles();await loadTaken();renderAll();
+ };
  try{ch=sb.channel('live')
-  .on('postgres_changes',{event:'*',schema:'public',table:'vehicles'},async()=>{
-   if(!me)return;
-   if(location.hash==='#admin'){if(me.is_admin)renderAdmin();return}
-   await loadVehicles();await loadTaken();renderAll();
-  })
+  .on('postgres_changes',{event:'*',schema:'public',table:'vehicles'},onVeh)
+  .on('postgres_changes',{event:'*',schema:'public',table:'vehicle_days'},onVeh)
+  .on('postgres_changes',{event:'*',schema:'public',table:'seats_public'},async()=>{if(!me||location.hash==='#admin')return;await loadTaken();renderAll()})
   .on('postgres_changes',{event:'*',schema:'public',table:'bookings'},()=>{
    if(!me)return;
    if(location.hash==='#admin'){if(me.is_admin)renderAdmin()}else renderMine();
@@ -368,22 +400,26 @@ document.addEventListener('click',async e=>{
  else if(a==='reserve')reserve();
  else if(a==='again'){$('flow').classList.remove('hidden');$('done').classList.add('hidden');await loadTaken();renderAll()}
  else if(a==='refresh')renderAdmin();
- else if(a==='vtoggle'){const r=await sb.from('vehicles').update({active:el.dataset.on!=='true'}).eq('id',el.dataset.id);notify(r.error?'No se pudo actualizar.':'Disponibilidad actualizada.');renderAdmin()}
- else if(a==='bstatus'){const r=await sb.from('bookings').update({status:el.dataset.s}).eq('id',el.dataset.id);notify(r.error?'No se pudo actualizar.':'Reserva '+el.dataset.s.toLowerCase()+'.');renderAdmin()}
+ else if(a==='vtoggle')done(await sb.from('vehicles').update({active:el.dataset.on!=='true'}).eq('id',el.dataset.id).select(),'Estado de la unidad actualizado.');
+ else if(a==='bstatus')done(await sb.from('bookings').update({status:el.dataset.s}).eq('id',el.dataset.id).select(),'Reserva '+el.dataset.s.toLowerCase()+'.');
+ else if(a==='dtoggle'){const ad=$('adminDate').value;if(!ad)return notify('Elige un día.');const o=adminDays.find(x=>x.vehicle_id===el.dataset.id)||{};const turnOn=el.dataset.off==='true';await saveDay({vehicle_id:el.dataset.id,trip_date:ad,active:turnOn,depart_time:o.depart_time||null},turnOn?'Unidad habilitada ese día.':'Unidad deshabilitada ese día.')}
  else if(a==='voucher'){const{data,error}=await sb.storage.from('vouchers').createSignedUrl(el.dataset.path,300);if(error)return notify('No se pudo abrir la captura.');$('v_'+el.dataset.id).innerHTML=`<img class="thumb" style="margin-left:0" alt="Captura de pago" src="${esc(data.signedUrl)}">`}
 });
 document.addEventListener('change',async e=>{
  const el=e.target;
- if(el.dataset.act==='vtime'){const r=await sb.from('vehicles').update({depart_time:el.value}).eq('id',el.dataset.id);notify(r.error?'No se pudo actualizar.':'Horario actualizado.');renderAdmin()}
+ if(el.dataset.act==='vtime')done(await sb.from('vehicles').update({depart_time:el.value}).eq('id',el.dataset.id).select(),'Hora habitual actualizada.');
+ else if(el.dataset.act==='dtime'){const ad=$('adminDate').value;if(!ad)return notify('Elige un día.');const o=adminDays.find(x=>x.vehicle_id===el.dataset.id)||{};await saveDay({vehicle_id:el.dataset.id,trip_date:ad,active:o.active!==false,depart_time:el.value||null},'Hora de ese día guardada.')}
 });
 $('voucherFile').addEventListener('change',pickVoucher);
 $('drinks').addEventListener('change',renderAll);
-$('date').addEventListener('change',async()=>{selSeat=null;await loadTaken();renderAll()});
+$('date').addEventListener('change',async()=>{selSeat=null;await loadVehicles();await loadTaken();renderAll()});
+$('adminDate').addEventListener('change',renderAdmin);
 $('aPass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth()});
 $('aOtp').addEventListener('keydown',e=>{if(e.key==='Enter')verifyCode()});
 const d0=new Date();d0.setMinutes(d0.getMinutes()-d0.getTimezoneOffset());
 const dm=new Date(d0);dm.setDate(dm.getDate()+30);
 $('date').min=$('date').value=d0.toISOString().slice(0,10);$('date').max=dm.toISOString().slice(0,10);
+$('adminDate').value=$('date').value;
 </script>
 </body>
 </html>
