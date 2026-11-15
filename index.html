@@ -180,7 +180,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'S/ '+Number(n).toFixed(2);
-const HOURS={'6:30 p. m.':'18:30','7:30 p. m.':'19:30','8:30 p. m.':'20:30','9:30 p. m.':'21:30'};
+const HOURS={};['a. m.','p. m.'].forEach((ap,i)=>[6,6.5,7,7.5,8,8.5,9].forEach(h=>{const hh=Math.floor(h),mm=h%1?'30':'00';HOURS[hh+':'+mm+' '+ap]=String(hh+(i?12:0)).padStart(2,'0')+':'+mm}));
 const phoneOf=p=>'+51'+p;
 let pending=null,cool=null,rid=0,ch=null;
 let me=null,vehicles=[],days=[],adminDays=[],selVeh=null,selSeat=null,taken=[],blob=null,busy=false,mode='login',lastBooking=null;
@@ -280,7 +280,7 @@ async function loadTaken(){
 }
 function calc(){
  const v=vehicles.map(eff).find(x=>x.id===selVeh),date=$('date').value;let late=false,past=false;
- if(v&&date){const dep=new Date(`${date}T${HOURS[v.depart_time]||'19:30'}:00-05:00`),h=(dep-new Date())/36e5;late=h>=0&&h<=6;past=h<0}
+ if(v&&date){const dep=new Date(`${date}T${HOURS[v.depart_time]||'19:00'}:00-05:00`),h=(dep-new Date())/36e5;late=h>=0&&h<=6;past=h<0}
  const seat=late?72:60,pack=$('drinks').checked?40:0,total=seat+pack;
  return{late,past,seat,pack,total,deposit:total*.2,balance:total*.8,v};
 }
